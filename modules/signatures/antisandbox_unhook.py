@@ -14,6 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from lib.cuckoo.common.abstracts import Signature
+import re
 
 class Unhook(Signature):
     name = "antisandbox_unhook"
@@ -71,9 +72,14 @@ class Unhook(Signature):
                         if funcname == name:
                             addit = False
                             break
-                 
-                office_pkgs = ["ppt","doc","xls","eml"]
-                if any(e in self.results["info"]["package"] for e in office_pkgs):
+
+                self.office_paths_re = re.compile(r"^[A-Z]\:\\Program Files(?:\s\(x86\))?\\Microsoft Office\\(?:Office\d{2}\\)?(?:WINWORD|OUTLOOK|POWERPNT|EXCEL|WORDVIEW)\.EXE$",re.I)
+                # get the path of the initial monitored executable
+                self.initialpath = None
+                processes = self.results["behavior"]["processtree"]
+                if len(processes):
+                    self.initialpath = processes[0]["module_path"].lower()
+                if self.initialpath and self.office_paths_re.match(self.initialpath):
                     allowed = [
                         "SetupDiGetDeviceRegistryPropertyA",
                         "SetupDiGetDeviceRegistryPropertyW",

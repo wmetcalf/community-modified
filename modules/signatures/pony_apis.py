@@ -13,10 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-try:
-    import re2 as re
-except ImportError:
-    import re
+import re
+import string
 
 from lib.cuckoo.common.abstracts import Signature
 
@@ -30,12 +28,16 @@ class Pony_APIs(Signature):
     authors = ["KillerInstinct"]
     minimum = "1.2"
     evented = True
+    carve_mem = True
 
     def __init__(self, *args, **kwargs):
         Signature.__init__(self, *args, **kwargs)
         self.urls = set()
         self.badpid = str()
         self.guidpat = "\{[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}\}"
+        self.whitelist = [
+            "http://download.oracle.com/",
+        ]
 
     filter_apinames = set(["RegSetValueExA", "InternetCrackUrlA"])
 
@@ -56,9 +58,39 @@ class Pony_APIs(Signature):
 
     def on_complete(self):
         if self.badpid:
+            if self.carve_mem:
+                if "procmemory" in self.results and self.results["procmemory"]:
+                    dump_path = str()
+                    for process in self.results["procmemory"]:
+                        if process["pid"] == int(self.badpid):
+                            dump_path = process["file"]
+                            break
+
+                    if dump_path:
+                        with open(dump_path, "rb") as dump_file:
+                            cData = dump_file.read()
+                        # Get the aPLib header + data
+                        buf = re.findall(r"aPLib .*PWDFILE", cData,
+                                         re.DOTALL|re.MULTILINE)
+                        # Strip out the header
+                        if buf and len(buf[0]) > 200:
+                            data = buf[0][200:]
+                            output = re.findall("(https?:\/\/.+?(?:\.php|\.exe))",
+                                                data)
+                            if output:
+                                for ioc in output:
+                                    if all(z in string.printable for z in ioc):
+                                        for item in self.whitelist:
+                                            if item not in ioc:
+                                                tmp = {"C2": ioc}
+                                                if tmp not in self.data:
+                                                    self.data.append(tmp)
+
             if self.urls:
                 for url in self.urls:
-                    self.data.append({"C2": url})
+                    insert = {"C2": url}
+                    if insert not in self.data:
+                        self.data.append(insert)
             return True
 
         return False

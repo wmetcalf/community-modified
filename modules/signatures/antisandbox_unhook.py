@@ -51,7 +51,7 @@ class Unhook(Signature):
                     funcname == "CoCreateInstance") and unhooktype == "modification":
                     addit = False
                 # exempt IE behavior
-                if self.is_url_analysis and unhooktype == "removal":
+                if self.results["info"]["package"] == "ie" and unhooktype == "removal":
                     allowed = [
                         "SetupDiGetDeviceRegistryPropertyA",
                         "SetupDiGetDeviceRegistryPropertyW",
@@ -66,6 +66,8 @@ class Unhook(Signature):
                         "WinHttpConnect",
                         "WinHttpReceiveResponse",
                         "WinHttpQueryHeaders",
+                        "GetFileVersionInfoW",
+                        "CreateWindowExW",
                     ]
 
                     for name in allowed:
@@ -73,24 +75,23 @@ class Unhook(Signature):
                             addit = False
                             break
 
-                self.office_paths_re = re.compile(r"^[A-Z]\:\\Program Files(?:\s\(x86\))?\\Microsoft Office\\(?:Office\d{2}\\)?(?:WINWORD|OUTLOOK|POWERPNT|EXCEL|WORDVIEW)\.EXE$",re.I)
-                # get the path of the initial monitored executable
-                self.initialpath = None
-                processes = self.results["behavior"]["processtree"]
-                if len(processes):
-                    self.initialpath = processes[0]["module_path"].lower()
-                if self.initialpath and self.office_paths_re.match(self.initialpath):
+                office_pkgs = ["ppt","doc","xls","eml"]
+                if any(e in self.results["info"]["package"] for e in office_pkgs):
                     allowed = [
                         "SetupDiGetDeviceRegistryPropertyA",
                         "SetupDiGetDeviceRegistryPropertyW",
                         "SetupDiGetClassDevsA",
                         "SetupDiGetClassDevsW",
+                        "GetFileVersionInfoW",
+                        "GetFileVersionInfoSizeW",
+
                     ]
                     for name in allowed:
                         if funcname == name:
                             addit = False
                             break
-                if self.is_url_analysis and unhooktype == "modification" and (funcname == "WinHttpGetIEProxyConfigForCurrentUser" or funcname == "CreateWindowExW"):
+
+                if self.results["info"]["package"] == "ie" and unhooktype == "modification" and (funcname == "WinHttpGetIEProxyConfigForCurrentUser" or funcname == "CreateWindowExW"):
                     addit = False
 
                 if addit:

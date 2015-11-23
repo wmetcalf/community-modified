@@ -31,11 +31,11 @@ class PEAnomaly(Signature):
         }
         found_sig = False
 
-        if not "static" in self.results or not "pe_imagebase" in self.results["static"] or not "pe_timestamp" in self.results["static"] or not "pe_osversion" in self.results["static"] or not "pe_entrypoint" in self.results["static"]:
+        if not "static" in self.results or not "pe" in self.results["static"]:
             return False
 
-        compiletime = datetime.strptime(self.results["static"]["pe_timestamp"], '%Y-%m-%d %H:%M:%S')
-        osver = self.results["static"]["pe_osversion"]
+        compiletime = datetime.strptime(self.results["static"]["pe"]["timestamp"], '%Y-%m-%d %H:%M:%S')
+        osver = self.results["static"]["pe"]["osversion"]
         osmajor = int(osver.split(".")[0], 10)
         if osmajor < 4 and compiletime.year >= 2000:
             self.data.append({"anomaly" : "Minimum OS version is older than NT4 yet the PE timestamp year is newer than 2000"})
@@ -47,15 +47,20 @@ class PEAnomaly(Signature):
                 self.data.append({"anomaly" : "Timestamp on binary predates the release date of the OS version it requires by at least a year"})
                 self.weight += 1
 
-        if "pe_sections" in self.results["static"]:
+        if "sections" in self.results["static"]["pe"]:
             bigvirt = False
             unprint = False
             foundsec = None
             foundcodesec = False
+            foundnamedupe = False
             lowrva = 0xffffffff
-            imagebase = int(self.results["static"]["pe_imagebase"], 16)
-            eprva = int(self.results["static"]["pe_entrypoint"], 16) - imagebase
-            for section in self.results["static"]["pe_sections"]:
+            imagebase = int(self.results["static"]["pe"]["imagebase"], 16)
+            eprva = int(self.results["static"]["pe"]["entrypoint"], 16) - imagebase
+            seennames = set()
+            for section in self.results["static"]["pe"]["sections"]:
+                if section["name"] in seennames:
+                    foundnamedupe = True
+                seennames.add(section["name"])
                 if "IMAGE_SCN_CNT_CODE" in section["characteristics"]:
                     foundcodesec = True
                 if "\\x" in section["name"]:
@@ -71,6 +76,9 @@ class PEAnomaly(Signature):
                     foundsec = section
                 if secstart < lowrva:
                     lowrva = secstart
+            if foundnamedupe:
+                self.data.append({"anomaly" : "Found duplicated section names"})
+                self.weight += 1
             if unprint:
                 self.data.append({"anomaly" : "Unprintable characters found in section name"})
                 self.weight += 1
@@ -87,14 +95,22 @@ class PEAnomaly(Signature):
                 # used to blow up memory dumpers
                 self.data.append({"anomaly" : "Contains a section with a virtual size >= 100MB"})
                 self.weight += 1
-        if "pe_resources" in self.results["static"]:
-            for resource in self.results["static"]["pe_resources"]:
+        if "resources" in self.results["static"]["pe"]:
+            for resource in self.results["static"]["pe"]["resources"]:
                 if int(resource["size"], 16) >= 100 * 1024 * 1024:
                     self.data.append({"anomaly" : "Contains a resource with a size >= 100MB"})
                     self.weight += 1
-        if "pe_reported_checksum" in self.results["static"] and "pe_actual_checksum" in self.results["static"]:
-            reported = int(self.results["static"]["pe_reported_checksum"], 16)
-            actual = int(self.results["static"]["pe_actual_checksum"], 16)
+
+        if "versioninfo" in self.results["static"]["pe"]:
+            for ver in self.results["static"]["pe"]["versioninfo"]:
+                if ver["name"] == "OriginalFilename" and ver["value"].lower().endswith(".dll") and \
+                    "PE32" in self.results["target"]["file"]["type"] and "DLL" not in self.results["target"]["file"]["type"]:
+                    self.data.append({"anomaly" : "OriginalFilename version info claims file is a DLL but binary is a main executable"})
+                    self.weight += 1
+
+        if "reported_checksum" in self.results["static"]["pe"] and "actual_checksum" in self.results["static"]["pe"]:
+            reported = int(self.results["static"]["pe"]["reported_checksum"], 16)
+            actual = int(self.results["static"]["pe"]["actual_checksum"], 16)
             if reported and reported != actual:
                 self.data.append({"anomaly" : "Actual checksum does not match that reported in PE header"})
                 self.weight += 1

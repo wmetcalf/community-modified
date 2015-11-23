@@ -39,6 +39,8 @@ class Dyre_APIs(Signature):
         self.cryptoapis = False
         self.networkapis = set()
         self.syncapis = False
+        self.compname = self.get_environ_entry(self.get_initial_process(),
+                                               "ComputerName")
 
     filter_apinames = set(["CryptHashData", "HttpOpenRequestA",
                            "NtCreateNamedPipeFile"])
@@ -58,6 +60,10 @@ class Dyre_APIs(Signature):
             buf = self.get_argument(call, "Buffer")
             if buf in iocs:
                 self.cryptoapis = True
+            tmp = re.sub(r"\\x[0-9A-Fa-f]{2}", "", buf)
+            if self.compname in tmp:
+                if re.match("^" + self.compname + "[0-9 ]+$", tmp):
+                    self.cryptoapis = True
         elif call["api"] == "HttpOpenRequestA":
             buf = self.get_argument(call, "Path")
             if len(buf) > 10:
@@ -87,13 +93,12 @@ class Dyre_APIs(Signature):
         # C2 Beacon check
         if self.networkapis:
             # Gather computer name
-            compname = self.get_environ_entry(self.get_initial_process(), "ComputerName")
             for httpreq in self.networkapis:
                 # Generate patterns (should only ever be one per indicator)
                 indicators = [
-                    "/(\d{4}[a-z]{2}\d{2})/" + compname + "_",
-                    "/([^/]+)/" + compname + "/\d+/\d+/\d+/$",
-                    "/([^/]+)/" + compname + "_W\d{6}\.[0-9A-F]{32}",
+                    "/(\d{4}[a-z]{2}\d{2})/" + self.compname + "_",
+                    "/([^/]+)/" + self.compname + "/\d+/\d+/\d+/$",
+                    "/([^/]+)/" + self.compname + "_W\d{6}\.[0-9A-F]{32}",
                 ]
                 for indicator in indicators:
                     buf = re.match(indicator, httpreq)

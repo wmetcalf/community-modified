@@ -1,4 +1,4 @@
-﻿# Copyright (C) 2015 Kevin Ross, Optiv, Inc. (brad.spengler@optiv.com)
+# Copyright (C) 2015 Optiv, Inc. (brad.spengler@optiv.com)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,35 +13,31 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-try:
-    import re2 as re
-except ImportError:
-    import re
-
 from lib.cuckoo.common.abstracts import Signature
 
-class Flash_JS(Signature):
-    name = "flash_js"
-    description = "Executes JavaScript containing allowScriptAccess=always, possibly indicative of a Flash exploit attempt"
-    severity = 2
-    confidence = 50
-    categories = ["exploit_kit", "flash"]
-    authors = ["Kevin Ross", "Optiv"]
+class DEPDisable(Signature):
+    name = "dep_disable"
+    description = "A process disabled DEP at runtime"
+    severity = 3
+    categories = ["exploit"]
+    authors = ["Optiv"]
     minimum = "1.3"
     evented = True
 
     def __init__(self, *args, **kwargs):
         Signature.__init__(self, *args, **kwargs)
 
-    filter_categories = set(["browser"])
-    # backward compat
-    filter_apinames = set(["JsEval", "COleScript_Compile", "COleScript_ParseScriptText"])
+    filter_apinames = set(["NtSetInformationProcess"])
 
     def on_call(self, call, process):
-        if call["api"] == "JsEval":
-            buf = self.get_argument(call, "Javascript")
-        else:
-            buf = self.get_argument(call, "Script")
+        infoclass = int(self.get_argument(call, "ProcessInformationClass"))
+        value = int(self.get_argument(call, "Value"))
 
-        if re.search("allowscriptaccess\s*?=\s*?[\x22\x27]?always", buf, re.I|re.M):
-            return True
+        # ProcessDEPPolicy
+        if infoclass == 34 and value == 0:
+            self.data.append({"process" : process["process_name"] + ":" + str(process["process_id"])})
+
+    def on_complete(self):
+         if self.data:
+             return True
+         return False

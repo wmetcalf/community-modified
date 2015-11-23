@@ -1,4 +1,4 @@
-# Copyright (C) 2013 Claudio "nex" Guarnieri (@botherder)
+# Copyright (C) 2013-2015 Claudio "nex" Guarnieri (@botherder), Optiv, Inc. (brad.spengler@optiv.com)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,27 +26,33 @@ class NetworkHTTP(Signature):
     severity = 2
     confidence = 30
     categories = ["http"]
-    authors = ["nex"]
+    authors = ["nex","Optiv"]
     minimum = "0.5"
 
     filter_analysistypes = set(["file"])
 
     def run(self):
+        urls = []
         whitelist = [
             "^http://crl\.microsoft\.com/.*",
             ]
         if "file" in self.results["target"]:
-            if "PDF" in self.results["target"]["file"]["type"]:
+            if "PDF" in self.results["target"]["file"]["type"] or self.results["info"]["package"] == "pdf":
                 whitelist.append("^http://.*\.adobe\.com/.*")
 
-        if "network" in self.results:
-            if "http" in self.results["network"]:
-                for req in self.results["network"]["http"]:
-                    is_whitelisted = False
-                    for white in whitelist:
-                        if re.match(white, req["uri"], re.IGNORECASE):
-                            is_whitelisted = True
-                    if not is_whitelisted:
-                        return True
+        if "network" in self.results and "http" in self.results["network"]:
+            for req in self.results["network"]["http"]:
+                is_whitelisted = False
+                for white in whitelist:
+                    if re.match(white, req["uri"], re.IGNORECASE):
+                        is_whitelisted = True
+                if not is_whitelisted and req["uri"] not in urls:
+                    urls.append(req["uri"])
+
+        for url in urls:
+            self.data.append({"url" : url})
+
+        if urls:
+            return True
 
         return False

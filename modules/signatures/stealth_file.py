@@ -27,6 +27,10 @@ class StealthFile(Signature):
         self.handles = dict()
         self.lastprocess = 0
         self.stealth_files = []
+        self.is_office = False
+        office_pkgs = ["ppt","doc","xls","eml"]
+        if any(e in self.results["info"]["package"] for e in office_pkgs):
+            self.is_office = True
 
     filter_apinames = set(["NtCreateFile", "NtDuplicateObject", "NtOpenFile", "NtClose", "NtSetInformationFile"])
 
@@ -87,7 +91,11 @@ class StealthFile(Signature):
             r'^[A-Z]?:\\Documents and Settings\\[^\\]+\\Local Settings\\History\\History\.IE5\\$',
             r'^[A-Z]?:\\Documents and Settings\\[^\\]+\\Local Settings\\History\\History\.IE5\\MSHist[0-9]+\\$',
             r'^[A-Z]?:\\Documents and Settings\\[^\\]+\\Local Settings\\History\\History\.IE5\\MSHist[0-9]+\\index\.dat$',
+            r'^[A-Z]?:\\Documents and Settings\\[^\\]+\\Application Data\\Microsoft\\CryptnetUrlCache\\Content\\[A-F0-9]{32}$',
+            r'^[A-Z]?:\\Documents and Settings\\[^\\]+\\Application Data\\Microsoft\\CryptnetUrlCache\\Metadata\\[A-F0-9]{32}$',
             r'^[A-Z]?:\\Documents and Settings\\[^\\]+\\Cookies\\$',
+            r'^[A-Z]?:\\Users\\[^\\]+\\AppData\\Local\\Microsoft\\Windows\\Temporary Internet Files\\Content\.IE5\\$',
+            r'^[A-Z]?:\\Users\\[^\\]+\\AppData\\Roaming\\Microsoft\\Windows\\Cookies\\$',
             r'^[A-Z]?:\\Users\\[^\\]+\\Favorites\\Links\\.*',
             r'^[A-Z]?:\\Users\\[^\\]+\\AppData\\Local\\Microsoft\\Windows\\Temporary Internet Files\\Virtualized$',
             r'^[A-Z]?:\\Users\\[^\\]+\\AppData\\Local\\Microsoft\\Feeds\\.*',
@@ -95,6 +103,8 @@ class StealthFile(Signature):
             r'^[A-Z]?:\\Users\\[^\\]+\\AppData\\Local\\Microsoft\\Feeds Cache\\index\.dat$',
             r'^[A-Z]?:\\Users\\[^\\]+\\AppData\\Roaming\\Microsoft\\Windows\\IETldCache\\$',
             r'^[A-Z]?:\\Users\\[^\\]+\\AppData\\Roaming\\Microsoft\\Windows\\IETldCache\\index\.dat$',
+            r'^[A-Z]?:\\Documents and Settings\\[^\\]+\\IETldCache\\$',
+            r'^[A-Z]?:\\Documents and Settings\\[^\\]+\\IETldCache\\index\.dat$',
             r'^[A-Z]?:\\Users\\[^\\]+\\AppData\\Roaming\\Microsoft\\Windows\\IECompatUACache\\Low$',
             r'^[A-Z]?:\\Users\\[^\\]+\\AppData\\Roaming\\Microsoft\\Windows\\IECompatCache\\$',
             r'^[A-Z]?:\\Users\\[^\\]+\\AppData\\Roaming\\Microsoft\\Windows\\IECompatCache\\Low$',
@@ -111,7 +121,7 @@ class StealthFile(Signature):
         saw_stealth = False
         target_name = None
 
-        if "file" in self.results["target"] and "PE32" not in self.results["target"]["file"]["type"]:
+        if self.is_office and "file" in self.results["target"]:
             target_name = self.results["target"]["file"]["name"]
             
         for hfile in self.stealth_files:
@@ -120,8 +130,8 @@ class StealthFile(Signature):
                 if re.match(entry, hfile, re.IGNORECASE):
                     addit = False
 
-            if target_name and not hfile.endswith("\\"):
-                fname = hfile.split("\\")[-1][2:]
+            if self.is_office and target_name and not hfile.endswith("\\"):
+                fname = hfile.split("\\")[-1][2:].replace("(", "_").replace(")", "_")
                 if fname == target_name or fname in target_name:
                     addit = False
 

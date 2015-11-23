@@ -1,4 +1,4 @@
-# Copyright (C) 2015 Optiv, Inc. (brad.spengler@optiv.com)
+# Copyright (C) 2015 Will Metcalf william.metcalf@gmail.com 
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -41,4 +41,3 @@ class Neutrino_JS(Signature):
 
         if ".SetReturnValue(__flash__toXML(function" in buf and ("MOV%20%5BECX+0C%5D%2CEAX" in buf or "chrw%2801%29%26chrw%282176%29%26chrw%2801%29%26chrw%2800%29%26chrw%2800%29%26chrw%2800%29%26chrw%2800%29%26chrw%2800%29" in buf or "dashstyle.array.length%20%3D%200%20-%201%3B" in buf) and "unescape" in buf:
             return True
-

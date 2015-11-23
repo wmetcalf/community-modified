@@ -1,3 +1,18 @@
+# Copyright (C) 2015 Kevin Ross
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 from lib.cuckoo.common.abstracts import Signature
 import re
 class OfficeSecurity(Signature):
@@ -9,13 +24,8 @@ class OfficeSecurity(Signature):
     minimum = "1.2"
 
     def run(self):
-        self.office_paths_re = re.compile(r"^[A-Z]\:\\Program Files(?:\s\(x86\))?\\Microsoft Office\\(?:Office\d{2}\\)?(?:WINWORD|OUTLOOK|POWERPNT|EXCEL|WORDVIEW)\.EXE$",re.I)
-        # get the path of the initial monitored executable
-        self.initialpath = None
-        processes = self.results["behavior"]["processtree"]
-        if len(processes):
-            self.initialpath = processes[0]["module_path"].lower()
-        if self.initialpath and self.office_paths_re.match(self.initialpath):
+        office_pkgs = ["ppt","doc","xls","eml"]
+        if any(e in self.results["info"]["package"] for e in office_pkgs):
             return False
 
         reg_indicators = [

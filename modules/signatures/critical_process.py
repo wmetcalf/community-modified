@@ -1,4 +1,4 @@
-﻿# Copyright (C) 2015 Will Metcalf william.metcalf@gmail.com 
+# Copyright (C) 2015 Optiv, Inc. (brad.spengler@optiv.com)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,29 +15,29 @@
 
 from lib.cuckoo.common.abstracts import Signature
 
-class BrowserScanbox(Signature):
-    name = "browser_scanbox"
-    description = "Scanbox Activity in Browser"
-    weight = 3
+class CriticalProcess(Signature):
+    name = "critical_process"
+    description = "A process was set to shut the system down when terminated"
     severity = 3
-    categories = ["exploit"]
-    authors = ["Will Metcalf"]
+    categories = ["generic"]
+    authors = ["Optiv"]
     minimum = "1.3"
     evented = True
 
     def __init__(self, *args, **kwargs):
         Signature.__init__(self, *args, **kwargs)
 
-    filter_categories = set(["browser"])
-    # backward compat
-    filter_apinames = set(["JsEval", "COleScript_Compile", "COleScript_ParseScriptText"])
+    filter_apinames = set(["NtSetInformationProcess"])
 
     def on_call(self, call, process):
-        if call["api"] == "JsEval":
-            buf = self.get_argument(call, "Javascript")
-        else:
-            buf = self.get_argument(call, "Script")
-            if 'softwarelist.push(' in buf.lower() and 'indexof("-2147023083")' in buf.lower():
-                return True
-            elif 'var logger' in buf.lower() and 'document.onkeypress = keypress;' in buf.lower() and 'setinterval(sendchar,' in buf.lower():
-                return True
+        infoclass = int(self.get_argument(call, "ProcessInformationClass"))
+        value = int(self.get_argument(call, "Value"))
+
+        # ProcessBreakOnTermination
+        if infoclass == 29 and value == 1:
+            self.data.append({"process" : process["process_name"] + ":" + str(process["process_id"])})
+
+    def on_complete(self):
+         if self.data:
+             return True
+         return False

@@ -18,13 +18,41 @@
     <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="modules\signatures\antianalysis_detectfile.py" />
     <Compile Include="modules\signatures\antisandbox_cuckoo.py" />
+    <Compile Include="modules\signatures\antisandbox_sboxie_mutex.py" />
+    <Compile Include="modules\signatures\antisandbox_sboxie_objects.py" />
+    <Compile Include="modules\signatures\antivm_dirobjects.py" />
+    <Compile Include="modules\signatures\antivm_vmware_libs.py" />
+    <Compile Include="modules\signatures\antivm_vpc_mutex.py" />
     <Compile Include="modules\signatures\browser_scanbox.py" />
+    <Compile Include="modules\signatures\chimera_apis.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="modules\signatures\clickfraud_cookies.py" />
     <Compile Include="modules\signatures\clickfraud_volume.py" />
+    <Compile Include="modules\signatures\creates_largekey.py" />
     <Compile Include="modules\signatures\darkcomet_regkeys.py" />
+    <Compile Include="modules\signatures\dead_link.py" />
+    <Compile Include="modules\signatures\critical_process.py" />
+    <Compile Include="modules\signatures\mimics_filename.py" />
+    <Compile Include="modules\signatures\setsautoconfigurl.py" />
+    <Compile Include="modules\signatures\stack_pivot.py" />
+    <Compile Include="modules\signatures\dep_bypass.py" />
+    <Compile Include="modules\signatures\dep_disable.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="modules\signatures\ek_heapsray.py" />
     <Compile Include="modules\signatures\ek_javaapplet.py" />
+    <Compile Include="modules\signatures\ek_neutrino.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="modules\signatures\ek_nuclear.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="modules\signatures\ek_rig.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="modules\signatures\ek_silverlight.py" />
     <Compile Include="modules\signatures\generic_phish.py" />
     <Compile Include="modules\signatures\hawkeye_apis.py" />
@@ -33,6 +61,10 @@
     <Compile Include="modules\signatures\kazybot_apis.py" />
     <Compile Include="modules\signatures\kibex_apis.py" />
     <Compile Include="modules\signatures\mimics_icon.py" />
+    <Compile Include="modules\signatures\network_anomaly.py" />
+    <Compile Include="modules\signatures\office_dl_write_exe.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="modules\signatures\office_security.py" />
     <Compile Include="modules\signatures\origin_resource_langid.py" />
     <Compile Include="modules\signatures\pdf_annot_urls.py" />
@@ -41,14 +73,12 @@
     <Compile Include="modules\signatures\procmem_yara.py" />
     <Compile Include="modules\signatures\ransomware_fileextensions.py" />
     <Compile Include="modules\signatures\secure_login_phish.py" />
+    <Compile Include="modules\signatures\shifu_apis.py" />
     <Compile Include="modules\signatures\spoofs_procname.py" />
     <Compile Include="modules\signatures\antivm_vbox_provname.py" />
     <Compile Include="modules\signatures\bad_ssl_certs.py" />
     <Compile Include="modules\signatures\disables_spdy.py" />
     <Compile Include="modules\signatures\ek_angler.py" />
-    <Compile Include="modules\signatures\ek_flash.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="modules\signatures\ek_gondad.py" />
     <Compile Include="modules\signatures\antiav_bitdefender_libs.py" />
     <Compile Include="modules\signatures\antianalysis_detectreg.py" />
@@ -154,6 +184,8 @@
     </Compile>
     <Compile Include="modules\signatures\persistence_service.py" />
     <Compile Include="modules\signatures\ransomware_files.py" />
+    <Compile Include="modules\signatures\static_java.py" />
+    <Compile Include="modules\signatures\static_rat_config.py" />
     <Compile Include="modules\signatures\static_pe_anomaly.py" />
     <Compile Include="modules\signatures\static_versioninfo_anomaly.py" />
     <Compile Include="modules\signatures\tinba_apis.py" />
@@ -174,6 +206,7 @@
     </Compile>
     <Compile Include="modules\signatures\upatre_apis.py" />
     <Compile Include="modules\signatures\vawtrak_apis.py" />
+    <Compile Include="modules\signatures\vawtrak_dll_apis.py" />
     <Compile Include="modules\signatures\virus.py" />
     <Compile Include="modules\signatures\bot_athenahttp.py" />
     <Compile Include="modules\signatures\bot_dirtjumper.py" />

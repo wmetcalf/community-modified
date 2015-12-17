@@ -50,9 +50,16 @@ class OfficeDLWritesEXE(Signature):
                 if self.exere.search(buff) != None:
                      self.data.append({"office_dl_write_exe": "%s_HttpOpenRequestW_%s" % (pname,buff)})
             if call["api"] == "InternetCrackUrlW":
-                buff = self.get_argument(call, "Url").lower()
-                if self.exere.search(buff) != None:
-                     self.data.append({"office_dl_write_exe": "%s_InternetCrackUrlW_%s" % (pname,buff)})
+                buff = self.get_argument(call, "Url")
+                if buff:
+                    buff = buff.lower()
+                    if self.exere.search(buff) != None:
+                        self.data.append({"office_dl_write_exe": "%s_InternetCrackUrlW_%s" % (pname,buff)})
+                buff = self.get_argument(call, "URL")
+                if buff:
+                    buff = buff.lower()
+                    if self.exere.search(buff) != None:
+                        self.data.append({"office_dl_write_exe": "%s_InternetCrackUrlW_%s" % (pname,buff)})
         return None
 
     def on_complete(self):

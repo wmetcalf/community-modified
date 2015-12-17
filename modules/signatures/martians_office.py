@@ -42,7 +42,7 @@ class MartiansOffice(Signature):
            for child in children:
                match_found = False
                for entry in pwlist:
-                   if entry.match(child):
+                   if entry.search(child):
                        match_found = True
                if not match_found:
                    result.append(child)
@@ -57,17 +57,17 @@ class MartiansOffice(Signature):
         #############################################  
         #YOU MAY HAVE TO CUSTOMIZE THIS FOR YOUR ENV#
         #############################################
-        self.white_list_re = ["^C\\:\\\\Program Files(?:\s\\(x86\\))?\\\\Adobe\\\\Reader\\ \\d+\\.\\d+\\\\Reader\\\\AcroRd32\\.exe$",
-                         "^C\\:\\\\Program Files(?:\s\\(x86\\))?\\\\Java\\\\jre\\d+\\\\bin\\\\j(?:avaw?|p2launcher)\\.exe$",
-                         "^C\\:\\\\Program Files(?:\s\\(x86\\))?\\\\Microsoft SilverLight\\\\(?:\\d+\\.)+\\d\\\\agcp\\.exe$",
-                         "^C\\:\\\\Windows\\\\System32\\\\ntvdm\\.exe$",
-                         "^C\\:\\\\Windows\\\\System32\\\\svchost\\.exe$",
-                         "^C\\:\\\\Program Files(?:\s\\(x86\\))?\\\\internet explorer\\\\iexplore\.exe$",
-                         "^C\\:\\\\Windows\\\\System32\\\\rundll32\\.exe$",
-                         "^C\\:\\\\Windows\\\\System32\\\\drwtsn32\\.exe$",
-                         "^C\\:\\\\Windows\\\\splwow64\\.exe$",
-                         "^C\\:\\\\Program Files(?:\s\\(x86\\))?\\\\Common Files\\\\Microsoft Shared\\\\office1[1-5]\\\\offlb\\.exe$",
-                         "^C\\:\\\\Program Files(?:\s\\(x86\\))?\\\\Common Files\\\\Microsoft Shared\\\\dw\\\\dw(?:20)?\\\.exe$"
+        self.white_list_re = ["C\\:\\\\Program Files(?:\s\\(x86\\))?\\\\Adobe\\\\Reader\\ \\d+\\.\\d+\\\\Reader\\\\AcroRd32\\.exe$",
+                         "C\\:\\\\Program Files(?:\s\\(x86\\))?\\\\Java\\\\jre\\d+\\\\bin\\\\j(?:avaw?|p2launcher)\\.exe$",
+                         "C\\:\\\\Program Files(?:\s\\(x86\\))?\\\\Microsoft SilverLight\\\\(?:\\d+\\.)+\\d\\\\agcp\\.exe$",
+                         "C\\:\\\\Windows\\\\System32\\\\ntvdm\\.exe$",
+                         "C\\:\\\\Windows\\\\System32\\\\svchost\\.exe$",
+                         "C\\:\\\\Program Files(?:\s\\(x86\\))?\\\\internet explorer\\\\iexplore\.exe$",
+                         "C\\:\\\\Windows\\\\System32\\\\rundll32\\.exe$",
+                         "C\\:\\\\Windows\\\\System32\\\\drwtsn32\\.exe$",
+                         "C\\:\\\\Windows\\\\splwow64\\.exe$",
+                         "C\\:\\\\Program Files(?:\s\\(x86\\))?\\\\Common Files\\\\Microsoft Shared\\\\office1[1-5]\\\\offlb\\.exe$",
+                         "C\\:\\\\Program Files(?:\s\\(x86\\))?\\\\Common Files\\\\Microsoft Shared\\\\dw\\\\dw(?:20)?\\.exe$"
                         ]
         #means we can be evaded but also means we can have relatively tight paths between 32-bit and 64-bit
         self.white_list_re_compiled = []

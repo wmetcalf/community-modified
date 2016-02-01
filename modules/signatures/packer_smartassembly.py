@@ -1,4 +1,4 @@
-﻿# Copyright (C) 2012-2014 Cuckoo Foundation.
+# Copyright (C) 2015 KillerInstinct
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,21 +15,21 @@
 
 from lib.cuckoo.common.abstracts import Signature
 
-class PDF_EOF(Signature):
-    name = "pdf_eof"
-    description = "The PDF has data after the last %% EOF marker."
-    severity = 3
-    categories = ["pdf"]
+class SmartAssemblyPacked(Signature):
+    name = "packer_smartassembly"
+    description = ".NET file is packed/obfuscated with SmartAssembly"
+    severity = 2
+    categories = ["packer"]
     authors = ["KillerInstinct"]
     minimum = "1.3"
 
-    filter_analysistypes = set(["file"])
-
     def run(self):
-        if "static" in self.results and "pdf" in self.results["static"]:
-            if "PDF" in self.results["target"]["file"]["type"]:
-                if "Data After EOF" in self.results["static"]["pdf"]["Info"]:
-                    if self.results["static"]["pdf"]["Info"]["Data After EOF"] != "0":
-                        return True
+        if not "static" in self.results or not "dotnet" in self.results["static"]:
+            return False
+
+        if "customattrs" in self.results["static"]["dotnet"] and self.results["static"]["dotnet"]["customattrs"]:
+            for attr in self.results["static"]["dotnet"]["customattrs"]:
+                if "smartassembly" in attr["value"].lower():
+                    return True
 
         return False

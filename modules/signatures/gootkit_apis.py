@@ -1,4 +1,4 @@
-# Copyright (C) 2015 Kevin Ross
+# Copyright (C) 2016 KillerInstinct
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,35 +13,28 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-try:
-    import re2 as re
-except ImportError:
-    import re
-
 from lib.cuckoo.common.abstracts import Signature
 
-class Java_JS(Signature):
-    name = "java_js"
-    description = "Executes obfuscated JavaScript containing a Java appplet indicative of an exploit attempt"
+class Gootkit_APIs(Signature):
+    name = "gootkit_behavior"
+    description = "Exhibits behavior characteristic of Gootkit malware"
     weight = 3
     severity = 3
-    categories = ["exploit_kit", "java"]
-    authors = ["Kevin Ross"]
-    minimum = "1.3"
+    categories = ["trojan"]
+    families = ["gootkit"]
+    authors = ["KillerInstinct"]
+    minimum = "1.2"
     evented = True
 
     def __init__(self, *args, **kwargs):
         Signature.__init__(self, *args, **kwargs)
 
-    filter_categories = set(["browser"])
-    # backward compat
-    filter_apinames = set(["JsEval", "COleScript_Compile", "COleScript_ParseScriptText"])
+    filter_apinames = set(["RegSetValueExW"])
 
     def on_call(self, call, process):
-        if call["api"] == "JsEval":
-            buf = self.get_argument(call, "Javascript")
-        else:
-            buf = self.get_argument(call, "Script")
-
-        if re.search("\<applet.*?archive[ \t\n]*?=", buf, re.IGNORECASE|re.DOTALL):
-            return True
+        bufLen = self.get_argument(call, "BufferLength")
+        if bufLen and int(bufLen) > 128000:
+            valName = self.get_argument(call, "ValueName")
+            if valName and valName.lower().startswith("binaryimage"):
+                if "_" in valName and valName[-1].isdigit():
+                    return True

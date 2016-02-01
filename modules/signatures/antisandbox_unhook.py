@@ -14,7 +14,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from lib.cuckoo.common.abstracts import Signature
-import re
 
 class Unhook(Signature):
     name = "antisandbox_unhook"
@@ -46,30 +45,21 @@ class Unhook(Signature):
             funcname = self.get_argument(call, "FunctionName")
             unhooktype = self.get_argument(call, "UnhookType")
             if funcname != "":
+                allowed_mods = [
+                    # done by IE
+                    "SetUnhandledExceptionFilter",
+                    "SetWindowsHookExW",
+                    "UnhookWindowsHookEx",
+                    "CreateWindowExW",
+                    "CoCreateInstance",
+                ]
                 addit = True
-                if (funcname == "SetUnhandledExceptionFilter" or funcname == "SetWindowsHookExW" or funcname == "UnhookWindowsHookEx" or
-                    funcname == "CoCreateInstance") and unhooktype == "modification":
+                if unhooktype == "modification" and funcname in allowed_mods:
                     addit = False
                 # exempt IE behavior
-                if self.results["info"]["package"] == "ie" and unhooktype == "removal":
+                if self.is_url_analysis:
                     allowed = [
-                        "SetupDiGetDeviceRegistryPropertyA",
-                        "SetupDiGetDeviceRegistryPropertyW",
-                        "WinHttpSendRequest"
-                        "WinHttpGetProxyForUrl",
-                        "SetupDiGetClassDevsW",
-                        "WinHttpSetTimeouts",
-                        "SetupDiGetClassDevsA",
-                        "WinHttpSetOption",
-                        "WinHttpOpenRequest",
-                        "WinHttpGetIEProxyConfigForCurrentUser",
-                        "WinHttpConnect",
-                        "WinHttpReceiveResponse",
-                        "WinHttpQueryHeaders",
-                        "GetFileVersionInfoW",
-                        "CreateWindowExW",
                     ]
-
                     for name in allowed:
                         if funcname == name:
                             addit = False
@@ -78,21 +68,11 @@ class Unhook(Signature):
                 office_pkgs = ["ppt","doc","xls","eml"]
                 if any(e in self.results["info"]["package"] for e in office_pkgs):
                     allowed = [
-                        "SetupDiGetDeviceRegistryPropertyA",
-                        "SetupDiGetDeviceRegistryPropertyW",
-                        "SetupDiGetClassDevsA",
-                        "SetupDiGetClassDevsW",
-                        "GetFileVersionInfoW",
-                        "GetFileVersionInfoSizeW",
-
                     ]
                     for name in allowed:
                         if funcname == name:
                             addit = False
                             break
-
-                if self.results["info"]["package"] == "ie" and unhooktype == "modification" and (funcname == "WinHttpGetIEProxyConfigForCurrentUser" or funcname == "CreateWindowExW"):
-                    addit = False
 
                 if addit:
                     self.unhook_info.add("function_name: " + funcname + ", type: " + self.get_argument(call, "UnhookType"))

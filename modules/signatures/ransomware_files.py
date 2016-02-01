@@ -31,6 +31,7 @@ class RansomwareFiles(Signature):
         file_list = [
             (".*\\\\help_decrypt\.html$", ["CryptoWall"]),
             (".*\\\\decrypt_instruction\.html$", ["CryptoWall"]),
+            (".*\\\\help_your_files\.png$", ["CryptoWall"]),
             (".*\\\\decrypt_instructions\.txt$", ["CryptoLocker"]),
             (".*\\\\vault\.(key|txt)$", ["CrypVault"]),
             (".*\\\\!Decrypt-All-Files.*\.(txt|bmp)$", ["CTB-Locker"]),
@@ -38,9 +39,13 @@ class RansomwareFiles(Signature):
             (".*\\\\help_to_save_files\.(txt|bmp)$", ["AlphaCrypt", "TeslaCrypt"]),
             (".*\\\\recovery_(file|key)\.txt$", ["AlphaCrypt"]),
             (".*\\\\restore_files_.*\.(txt|html)$", ["AlphaCrypt", "TeslaCrypt"]),
-            (".*\\\\howto_restore_files_.*\.(txt|html)$", ["TeslaCrypt"]),
+            (".*\\\\howto_restore_files.*\.(txt|html)$", ["AlphaCrypt", "TeslaCrypt"]),
             (".*\\\\YOUR_FILES_ARE_ENCRYPTED\.HTML$", ["Chimera"]),
-            (".*\\\\_how_recover_.*\.(txt|html)$", ["AlphaCrypt"]),
+            (".*\\\\_?how_recover.*\.(txt|html)$", ["AlphaCrypt"]),
+            (".*\\\\cl_data.*\.bak$", ["WinPlock"]),
+            (".*\\\\READ\ ME\ FOR\ DECRYPT\.txt$", ["Fakben"]),
+            (".*\\\\YOUR_FILES.url$", ["Radamant"]),
+            (".*\\\\_How\ to\ decrypt\ LeChiffre\ files\.html$", ["LeChiffre"]),
         ]
 
         for ioc in file_list:

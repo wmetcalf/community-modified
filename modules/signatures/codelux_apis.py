@@ -1,4 +1,4 @@
-﻿# Copyright (C) 2012-2014 Cuckoo Foundation.
+# Copyright (C) 2016 KillerInstinct
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,22 +15,26 @@
 
 from lib.cuckoo.common.abstracts import Signature
 
-class PDF_Page(Signature):
-    name = "pdf_page"
-    description = "The PDF has one page. Many malicious PDFs only have one page."
-    severity = 2
-    categories = ["pdf"]
-    authors = ["KillerInstinct"]
-    minimum = "1.3"
-
-    filter_analysistypes = set(["file"])
+class CodeLux_APIs(Signature):
+    name = "codelux_behavior"
+    description = "Exhibits behavior characteristic of CodeLux Keylogger"
+    severity = 3
+    categories = ["keylogger"]
+    authors = ["KillerInstict"]
+    families = ["CodeLux"]
+    minimum = "1.0"
 
     def run(self):
-        if "static" in self.results and "pdf" in self.results["static"]:
-            if "PDF" in self.results["target"]["file"]["type"]:
-                if "Keywords" in self.results["static"]["pdf"]:
-                    if "/Page" in self.results["static"]["pdf"]["Keywords"]:
-                        if self.results["static"]["pdf"]["Keywords"]["/Page"] == 1:
-                            return True
+        queryattribs = [
+            ".*\\\\CodeluxRunPE.resources.dll$",
+            ".*\\\\CodeluxRunPE.resources.exe$",
+            ".*\\\\CodeluxVisionStub.resources.exe$",
+            ".*\\\\CodeluxVisionStub.resources.dll$",
+        ]
+
+        for ioc in queryattribs:
+            check = self.check_file(pattern=ioc, regex=True)
+            if check:
+                return True
 
         return False

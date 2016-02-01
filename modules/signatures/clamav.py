@@ -23,10 +23,11 @@ from lib.cuckoo.common.abstracts import Signature
 class ClamAV(Signature):
     name = "clamav"
     description = "Clamav Hits in Target/Dropped/SuriExtracted"
-    severity = 6
+    severity = 3
+    weight = 2
     categories = ["clamav"]
     authors = ["Will Metcalf"]
-    minimum = "0.5"
+    minimum = "1.2"
 
     def run(self):
         self.data = []
@@ -37,8 +38,8 @@ class ClamAV(Signature):
                     entry = "%s, type:%s" % (entry,self.results["target"]["file"]["type"])
                 self.data.append({"target":entry})
 
-        if "suricata" in self.results.keys():
-            if "files" in self.results["suricata"].keys():
+        if "suricata" in self.results and self.results["suricata"]:
+            if "files" in self.results["suricata"]:
                 for entry in self.results["suricata"]["files"]:
                     proto = entry["protocol"]
                     if "clamav" in entry["file_info"].keys() and entry["file_info"]["clamav"] and "sha256" in entry["file_info"].keys():
